@@ -46,7 +46,7 @@ RCT_EXPORT_METHOD(
       }
     }
     dispatch_sync(dispatch_get_main_queue(), ^{
-        JitsiMeetConferenceOptions *options = [JitsiMeetConferenceOptions fromBuilder:^(JitsiMeetConferenceOptionsBuilder *builder) {        
+        JitsiMeetConferenceOptions *options = [JitsiMeetConferenceOptions fromBuilder:^(JitsiMeetConferenceOptionsBuilder *builder) {
             builder.room = urlString;
             if(meetOptions[@"token"] != NULL)
               builder.token = meetOptions[@"token"];
@@ -106,7 +106,7 @@ RCT_EXPORT_METHOD(
     });
 }
 
-RCT_EXPORT_METHOD(audioCall:(NSString *)urlString userInfo:(NSDictionary *)userInfo)
+RCT_EXPORT_METHOD(audioCall:(NSString *)urlString userInfo:(NSDictionary *)userInfo meetOptions:(NSDictionary *)meetOptions)
 {
     RCTLogInfo(@"Load Audio only URL %@", urlString);
     JitsiMeetUserInfo * _userInfo = [[JitsiMeetUserInfo alloc] init];
@@ -123,7 +123,46 @@ RCT_EXPORT_METHOD(audioCall:(NSString *)urlString userInfo:(NSDictionary *)userI
       }
     }
     dispatch_sync(dispatch_get_main_queue(), ^{
-        JitsiMeetConferenceOptions *options = [JitsiMeetConferenceOptions fromBuilder:^(JitsiMeetConferenceOptionsBuilder *builder) {        
+        JitsiMeetConferenceOptions *options = [JitsiMeetConferenceOptions fromBuilder:^(JitsiMeetConferenceOptionsBuilder *builder) {
+            if(meetOptions[@"token"] != NULL)
+              builder.token = meetOptions[@"token"];
+            if(meetOptions[@"subject"] != NULL)
+              builder.subject = meetOptions[@"subject"];
+            if(meetOptions[@"videoMuted"] != NULL)
+              builder.videoMuted = [[meetOptions objectForKey:@"videoMuted"] boolValue];
+            if(meetOptions[@"audioOnly"] != NULL)
+              builder.audioOnly = [[meetOptions objectForKey:@"audioOnly"] boolValue];
+            if(meetOptions[@"audioMuted"] != NULL)
+              builder.audioMuted = [[meetOptions objectForKey:@"audioMuted"] boolValue];
+            builder.room = urlString;
+            builder.userInfo = _userInfo;
+            builder.audioOnly = YES;
+        }];
+        [jitsiMeetView join:options];
+    });
+}
+
+RCT_EXPORT_METHOD(setUnMute:(NSString *)urlString userInfo:(NSDictionary *)userInfo)
+{
+    RCTLogInfo(@"Load Audio only URL %@", urlString);
+    JitsiMeetUserInfo * _userInfo = [[JitsiMeetUserInfo alloc] init];
+    if (userInfo != NULL) {
+      if (userInfo[@"displayName"] != NULL) {
+        _userInfo.displayName = userInfo[@"displayName"];
+      }
+      if (userInfo[@"email"] != NULL) {
+        _userInfo.email = userInfo[@"email"];
+      }
+      if (userInfo[@"avatar"] != NULL) {
+        NSURL *url = [NSURL URLWithString:[userInfo[@"avatar"] stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]]];
+        _userInfo.avatar = url;
+      }
+    }
+    dispatch_sync(dispatch_get_main_queue(), ^{
+        JitsiMeetConferenceOptions *options = [JitsiMeetConferenceOptions fromBuilder:^(JitsiMeetConferenceOptionsBuilder *builder) {
+            builder.videoMuted = true;
+            builder.audioOnly = true;
+            builder.audioMuted = false;
             builder.room = urlString;
             builder.userInfo = _userInfo;
             builder.audioOnly = YES;

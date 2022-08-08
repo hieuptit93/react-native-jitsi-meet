@@ -90,7 +90,7 @@ public class RNJitsiMeetModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void audioCall(String url, ReadableMap userInfo) {
+    public void audioCall(String url, ReadableMap userInfo, ReadableMap meetOptions) {
         UiThreadUtil.runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -113,6 +113,44 @@ public class RNJitsiMeetModule extends ReactContextBaseJavaModule {
                     }
                     RNJitsiMeetConferenceOptions options = new RNJitsiMeetConferenceOptions.Builder()
                             .setRoom(url)
+                            .setSubject(meetOptions.hasKey("subject") ? meetOptions.getString("subject") : "")
+                            .setAudioMuted(meetOptions.hasKey("audioMuted") ? meetOptions.getBoolean("audioMuted") : false)
+                            .setAudioOnly(meetOptions.hasKey("audioOnly") ? meetOptions.getBoolean("audioOnly") : false)
+                            .setVideoMuted(meetOptions.hasKey("videoMuted") ? meetOptions.getBoolean("videoMuted") : false)
+                            .setAudioOnly(true)
+                            .setUserInfo(_userInfo)
+                            .build();
+                    mJitsiMeetViewReference.getJitsiMeetView().join(options);
+                }
+            }
+        });
+    }
+
+    @ReactMethod
+    public void setUnMute(String url, ReadableMap userInfo) {
+        UiThreadUtil.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (mJitsiMeetViewReference.getJitsiMeetView() != null) {
+                    RNJitsiMeetUserInfo _userInfo = new RNJitsiMeetUserInfo();
+                    if (userInfo != null) {
+                        if (userInfo.hasKey("displayName")) {
+                            _userInfo.setDisplayName(userInfo.getString("displayName"));
+                        }
+                        if (userInfo.hasKey("email")) {
+                            _userInfo.setEmail(userInfo.getString("email"));
+                        }
+                        if (userInfo.hasKey("avatar")) {
+                            String avatarURL = userInfo.getString("avatar");
+                            try {
+                                _userInfo.setAvatar(new URL(avatarURL));
+                            } catch (MalformedURLException e) {
+                            }
+                        }
+                    }
+                    RNJitsiMeetConferenceOptions options = new RNJitsiMeetConferenceOptions.Builder()
+                            .setRoom(url)
+                            .setAudioMuted(false)
                             .setAudioOnly(true)
                             .setUserInfo(_userInfo)
                             .build();
